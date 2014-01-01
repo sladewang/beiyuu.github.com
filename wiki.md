@@ -3,6 +3,7 @@ layout: page
 title: Wiki
 ---
 <div class="wiki">
+	## wiki from Beiyuu
     <h2>Javascript</h2>
     <ul class="hide">
         <li><a href="http://jqfundamentals.com/book/index.html">jQuery Fundamentals</a> - jQuery 入门教程。</li>

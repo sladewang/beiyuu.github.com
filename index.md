@@ -24,3 +24,11 @@ layout: home
     <div class="aside">
     </div>
 </div>
+<div class="footer">
+  	<p>
+	<small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a>
+		 on GitHub | template from 
+		<a href="http://beiyuu.com">Beiyuu</a>
+	</small>
+	</p>
+</div>
