@@ -27,7 +27,7 @@ layout: home
 <div class="footer">
   	<p>
 	<small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a>
-		 on GitHub | template from 
+		 on GitHub | Theme by 
 		<a href="http://beiyuu.com">Beiyuu</a>
 	</small>
 	</p>
