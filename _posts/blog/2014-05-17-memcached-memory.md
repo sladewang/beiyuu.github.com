@@ -79,6 +79,7 @@ memcached默认开启4个worker线程，slab allocator用了一个全局互斥�
                     	    const rel_time_t exptime, const int nbytes,
                             const uint32_t cur_hv);
 根据代码来说明下do_item_alloc这个函数的具体逻辑：
+
 * 先计算这个item的总长度，应该放在哪个slabclass中，设slabclass数组下标为id
 * 从该slabclass对应的LRU链表尾部即*tail[id]向前扫描5个（hard code）元素。如果item_lock被锁或者item refcount大于1则直接跳过。遇到没有被锁的item，就检查该item是否已失效。失效有两种可能：1，过期了；2，flush操作改变了oldest_live参数，导致这个时间之前的item全部失效。如果该item失效了，就可以重用这块内存，把item从hash表和LRU链表中删除，并做一些初始化工作就直接返回。
 * 如果LRU尾部5个item没有失效的，那么就调用slabs_alloc函数从slabclass上分配内存。
@@ -86,7 +87,9 @@ memcached默认开启4个worker线程，slab allocator用了一个全局互斥�
 * 如果LRU尾部5个item全部正在被使用（被锁或者recount大于1），那么直接从slabclass上申请内存，此时如果申请失败的话，LRU也回天乏力了，直接返回NULL。
 
 **slab rebalance**
+
 在memcached使用过程中，可能会出现各slabclass内存使用需求不平均的情况。假设一种极端情况，刚开始内存大部分都被分配给96 bytes的slabclass了，而后续需要存储的是大部分都是112 bytes的item，那么由于memcached不能把96 bytes的slabclass内存给112 bytes的item用，112 bytes的slabclass就会发生LRU替换，大大增加cache miss。slab rebalance就是为了解决这个问题，大体思路是从最近比较稳定（LRU item替换次数较少）的slabclass中牺牲一块slab出来，给急需内存的slabclass使用。前面在do_item_alloc函数逻辑中说到发生LRU替换的时候会统计slabclass的替换次数信息，在这里就可以用到了。memcached会开启两个线程，一个线程负责统计每个slabclass最近几个周期（5s）内LRU替换次数，选择最近3个周期内没有发生替换的slabclass作为source，最近3个周期内都是LRU替换最高的slabclass作为dest。如果找到了这样的source和dest，就用条件变量通知第二个线程。第二个线程负责source移动一块slab到dest中。移动的时候需要先清除原来的item，从LRU链表和Hash表中删除。实现代码就不放了，可以参考下这篇文章[Memcached slab move机制][5]，当然最好是直接看最新的源码。
+
 
 
 [1]: http://en.wikipedia.org/wiki/Slab_allocation
