@@ -46,6 +46,7 @@ category: blog
 	void slabs_free(void *ptr, size_t size, unsigned int id);
 
 先来看初始化slab的slabs_init函数，这个函数的流程如下：
+
 * 如果prealloc参数为true指定了预分配的话就会预先从操作系统分配一超大块内存，以prealloc等于true为例
 * 首先根据factor参数为每个slabclass设置chunk size和perslab
 * 然后调用slabs_preallocate函数为每一个slabclass分配内存。调用do_slabs_newslab从大块内存中拿出1M内存给slabclass。do_slabs_newslab中还会调用grow_slab_list初始化slab_list这个指针数组，初始为16个元素，后续不够了再realloc重新分配。
@@ -93,8 +94,10 @@ LRU链表是用全局锁cache_lock保护的。在多线程下，get命令查数�
 * 如果LRU尾部5个item全部正在被使用（被锁或者recount大于1），那么直接从slabclass上申请内存，此时如果申请失败的话，LRU也回天乏力了，直接返回NULL。
 
 **lazy expiration**
+
 	/** 查询hash表加上item过期判断（lazy expiration） */
 	item *do_item_get(const char *key, const size_t nkey, const uint32_t hv);
+
 set命令可以item的过期时间，但是memcached对于过期的item并不是定时触发删除，而是等到item每次被get命令查询时候才判断是否已过期，过期的话从LRU链表和Hash表中删除，返回查不到数据。另外，memcached也支持发送命令主动触发删除过期item，详见protocol.txt中有关LRU_Crawler的说明。
 
 **slab rebalance**
